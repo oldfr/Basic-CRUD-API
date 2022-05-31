@@ -17,13 +17,11 @@ public class InterceptLog implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("inside preHandle");
         if(request.getMethod().equals(HttpMethod.GET.name())
                 || request.getMethod().equals(HttpMethod.DELETE.name())
                 || request.getMethod().equals(HttpMethod.PUT.name()))    {
             loggingService.displayReq(request,null);
         }
         return true;
-//        return HandlerInterceptor.super.preHandle(request, response, handler);
     }
 }

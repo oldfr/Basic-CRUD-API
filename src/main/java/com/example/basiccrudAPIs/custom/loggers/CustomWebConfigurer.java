@@ -14,6 +14,5 @@ public class CustomWebConfigurer implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(logInterceptor);
-//        WebMvcConfigurer.super.addInterceptors(registry);
     }
 }
