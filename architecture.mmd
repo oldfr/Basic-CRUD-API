@@ -1,0 +1,37 @@
+flowchart TD
+    Client[Client] -->|HTTP REST| C[Controllers<br/>MainController<br/>OrderController<br/>ErrorController]
+
+    C -->|Direct| SR[StudentRepository]
+    C -->|Via Service| OS[OrderService]
+
+    OS --> OR[OrderRepository]
+
+    SR --> DB[(H2 Database)]
+    OR --> DB
+
+    SR --> SE[Student Entity]
+    OR --> OE[Order Entity]
+
+    C --> CL[Custom Loggers<br/>RequestBodyInterceptor<br/>ResponseBodyInterceptor<br/>InterceptLog]
+
+    CL -->|Logging| C
+
+    subgraph "Presentation Layer"
+        C
+    end
+
+    subgraph "Business Layer"
+        OS
+        CL
+    end
+
+    subgraph "Data Layer"
+        SR
+        OR
+        SE
+        OE
+    end
+
+    subgraph "External Systems"
+        DB
+    end

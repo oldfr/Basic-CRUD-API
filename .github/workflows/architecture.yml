@@ -1,0 +1,30 @@
+name: Generate Architecture Diagram
+
+on:
+push:
+paths:
+  - '**.mmd'
+
+jobs:
+generate-diagram:
+runs-on: ubuntu-latest
+
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Install Mermaid CLI
+      run: npm install -g @mermaid-js/mermaid-cli
+
+    - name: Generate diagram
+      run: mmdc -i architecture.mmd -o architecture.png
+
+    - name: Commit generated file
+      run: |
+        git config --global user.name "bot"
+        git config --global user.email "bot@example.com"
+        git add architecture.png
+
+  [//]: # (          git commit -m "Auto-generate architecture diagram" || echo "No changes")
+
+  [//]: # (          git push)
