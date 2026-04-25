@@ -1,0 +1,125 @@
+sequenceDiagram
+    participant Client
+    participant OrderController
+    participant OrderService
+    participant OrderRepository
+    participant DB[H2 Database]
+    participant MainController
+    participant StudentRepository
+
+    rect rgb(100, 150, 200)
+    Note over OrderController,OrderService: Order Creation Flow
+    Client->>OrderController: POST /orders<br/>(createOrder with OrderDTO)
+    OrderController->>OrderController: convertToEntity(orderDTO)
+    OrderController->>OrderService: saveOrder(order)
+    OrderService->>OrderRepository: save(order)
+    OrderRepository->>DB: INSERT INTO orders
+    DB-->>OrderRepository: Order with ID
+    OrderRepository-->>OrderService: savedOrder
+    OrderService-->>OrderController: savedOrder
+    OrderController-->>Client: HTTP 201<br/>(savedOrder)
+    end
+
+    rect rgb(100, 150, 200)
+    Note over OrderController,OrderRepository: Order Retrieval Flows
+    Client->>OrderController: GET /orders<br/>(getAllOrders)
+    OrderController->>OrderService: getAllOrders()
+    OrderService->>OrderRepository: findAll()
+    OrderRepository->>DB: SELECT * FROM orders
+    DB-->>OrderRepository: List<Order>
+    OrderRepository-->>OrderService: List<Order>
+    OrderService-->>OrderController: List<Order>
+    OrderController-->>Client: HTTP 200<br/>(List<Order>)
+
+    Client->>OrderController: GET /orders/{id}<br/>(getOrderById)
+    OrderController->>OrderService: getOrderById(id)
+    OrderService->>OrderRepository: findById(id)
+    OrderRepository->>DB: SELECT * FROM orders WHERE id=?
+    DB-->>OrderRepository: Optional<Order>
+    OrderRepository-->>OrderService: Optional<Order>
+    OrderService-->>OrderController: Optional<Order>
+    alt Order Found
+        OrderController-->>Client: HTTP 200<br/>(Order)
+    else Order Not Found
+        OrderController-->>Client: HTTP 404
+    end
+    end
+
+    rect rgb(150, 100, 200)
+    Note over OrderController,OrderService: Order Update Flow
+    Client->>OrderController: PUT /orders/{id}<br/>(updateOrder with OrderDTO)
+    OrderController->>OrderService: getOrderById(id)
+    OrderService->>OrderRepository: findById(id)
+    OrderRepository->>DB: SELECT * FROM orders WHERE id=?
+    DB-->>OrderRepository: Optional<Order>
+    OrderRepository-->>OrderService: Optional<Order>
+    OrderService-->>OrderController: Optional<Order>
+    alt Order Exists
+        OrderController->>OrderController: convertToEntity(orderDTO)
+        OrderController->>OrderController: order.setId(id)
+        OrderController->>OrderService: updateOrder(order)
+        OrderService->>OrderRepository: save(order)
+        OrderRepository->>DB: UPDATE orders SET ...
+        DB-->>OrderRepository: updatedOrder
+        OrderRepository-->>OrderService: updatedOrder
+        OrderService-->>OrderController: updatedOrder
+        OrderController-->>Client: HTTP 200<br/>(updatedOrder)
+    else Order Not Found
+        OrderController-->>Client: HTTP 404
+    end
+    end
+
+    rect rgb(200, 100, 150)
+    Note over OrderController,OrderService: Order Status Update
+    Client->>OrderController: PATCH /orders/{id}/status<br/>(updateOrderStatus)
+    OrderController->>OrderService: getOrderById(id)
+    OrderService->>OrderRepository: findById(id)
+    OrderRepository->>DB: SELECT * FROM orders WHERE id=?
+    DB-->>OrderRepository: Optional<Order>
+    OrderRepository-->>OrderService: Optional<Order>
+    OrderService-->>OrderController: Optional<Order>
+    alt Order Found
+        OrderController->>OrderService: updateStatusById(status, id)
+        OrderService->>OrderRepository: updateStatusById(status, id)
+        OrderRepository->>DB: UPDATE orders SET status=? WHERE id=?
+        DB-->>OrderRepository: rows updated
+        OrderRepository-->>OrderService: Integer
+        OrderService-->>OrderController: Integer
+        OrderController-->>Client: HTTP 200
+    else Order Not Found
+        OrderController-->>Client: HTTP 404
+    end
+    end
+
+    rect rgb(200, 150, 100)
+    Note over OrderController,StudentRepository: Order Delete Flow
+    Client->>OrderController: DELETE /orders/{id}<br/>(deleteOrder)
+    OrderController->>OrderService: getOrderById(id)
+    OrderService->>OrderRepository: findById(id)
+    OrderRepository->>DB: SELECT * FROM orders WHERE id=?
+    DB-->>OrderRepository: Optional<Order>
+    OrderRepository-->>OrderService: Optional<Order>
+    OrderService-->>OrderController: Optional<Order>
+    alt Order Found
+        OrderController->>OrderService: deleteOrder(id)
+        OrderService->>OrderRepository: deleteById(id)
+        OrderRepository->>DB: DELETE FROM orders WHERE id=?
+        DB-->>OrderRepository: success
+        OrderRepository-->>OrderService: void
+        OrderService-->>OrderController: void
+        OrderController-->>Client: HTTP 204
+    else Order Not Found
+        OrderController-->>Client: HTTP 404
+    end
+    end
+
+    rect rgb(150, 200, 100)
+    Note over MainController,StudentRepository: Student Create Flow (Direct Repository Access)
+    Client->>MainController: POST /students<br/>(addStudent)
+    MainController->>MainController: System.out.println()
+    MainController->>StudentRepository: save(student)
+    StudentRepository->>DB: INSERT INTO student
+    DB-->>StudentRepository: Student with ID
+    StudentRepository-->>MainController: student
+    MainController-->>Client: HTTP 200<br/>(student)
+    end
